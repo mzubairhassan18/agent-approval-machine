@@ -4,6 +4,7 @@ export default defineConfig({
   entry: {
     index: "src/index.ts",
     "core/index": "src/core/index.ts",
+    "store/index": "src/store/index.ts",
     "machines/index": "src/machines/index.ts",
     "adapters/index": "src/adapters/index.ts",
     "ui/index": "src/ui/index.ts",

@@ -13,7 +13,19 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => readFileSync(join(root, relative), "utf8");
 
-const CORE_SOURCE = read("src/core/useApproval.ts").replace(
+/**
+ * The core is two modules: the framework-free store, then the React binding
+ * that imports it. Registry items are flat files, so stitch them back into one
+ * `use-approval.ts` (store first: the binding reads from it) and drop the
+ * cross-file imports, since the types end up in the same file.
+ */
+const STORE_SOURCE = read("src/core/store.ts");
+const HOOK_SOURCE = read("src/core/useApproval.ts")
+  .replace(/^export \* from "\.\/store";\n/m, "")
+  .replace(/^import \{ createApprovalStore \} from "\.\/store";\n/m, "")
+  .replace(/^import type \{[^}]*\} from "\.\/store";\n/m, "");
+
+const CORE_SOURCE = `${STORE_SOURCE}\n\n${HOOK_SOURCE}`.replace(
   /from "\.\.\/core\/useApproval"/g,
   'from "./use-approval"',
 );
@@ -106,7 +118,7 @@ for (const target of targets) {
       {
         $schema: "https://ui.shadcn.com/schema/registry.json",
         name: "agent-approval-machine",
-        homepage: "https://github.com/agent-approval-machine/agent-approval-machine",
+        homepage: "https://github.com/mzubairhassan18/agent-approval-machine",
         items,
       },
       null,

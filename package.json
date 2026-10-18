@@ -1,18 +1,29 @@
 {
   "name": "agent-approval-machine",
   "version": "0.1.0",
-  "description": "Headless approval state machines for AI agents. Handles edit-before-approve, partial failure, undo windows and queued items. Same core, swappable adapters.",
+  "description": "Headless approval state machines for AI agents. Edit-before-approve, partial failure, undo windows and queued items. Framework-free core, plus a React binding and ready UI.",
   "keywords": [
     "ai",
     "agents",
     "human-in-the-loop",
     "approval",
     "state-machine",
+    "headless",
+    "framework-agnostic",
     "react",
     "hooks",
     "ai-sdk"
   ],
   "license": "MIT",
+  "author": "mzubairhassan18",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mzubairhassan18/agent-approval-machine.git"
+  },
+  "homepage": "https://github.com/mzubairhassan18/agent-approval-machine#readme",
+  "bugs": {
+    "url": "https://github.com/mzubairhassan18/agent-approval-machine/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [
@@ -28,6 +39,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./store": {
+      "types": "./dist/store/index.d.ts",
+      "import": "./dist/store/index.js",
+      "require": "./dist/store/index.cjs"
     },
     "./core": {
       "types": "./dist/core/index.d.ts",
@@ -60,10 +76,16 @@
     "typecheck": "tsc --noEmit",
     "registry": "node scripts/build-registry.mjs",
     "demo": "pnpm build && pnpm --filter demo dev",
-    "demo:build": "pnpm build && pnpm --filter demo build"
+    "demo:build": "pnpm build && pnpm --filter demo build",
+    "prepublishOnly": "pnpm test && pnpm typecheck && pnpm build"
   },
   "peerDependencies": {
     "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.4",
@@ -82,7 +104,8 @@
     "react-dom": "^19.0.0",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "vue": "^3.5.13"
   },
   "engines": {
     "node": ">=18"

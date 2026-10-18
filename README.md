@@ -2,7 +2,7 @@
 
 **Headless approval state machines for AI agents.** Edit before approve, partial failure, undo windows, and items that arrive while a tool is still running.
 
-Not a UI kit. The UI is a thin, optional shell over a core hook that has no dependencies, no CSS, and no components.
+Not a UI kit. The UI is a thin, optional shell over a core that has no dependencies, no CSS, no components — and no framework in it.
 
 ```
 Every AI agent rebuilds these 5 conditions:
@@ -29,13 +29,14 @@ pnpm add agent-approval-machine
 
 | Entry | Needs | For |
 | --- | --- | --- |
+| `agent-approval-machine/store` | nothing | the state machine itself, in **any** framework or plain JS |
+| `agent-approval-machine/core` | React >= 18 | `useApproval`, the React binding (~40 lines) |
 | `agent-approval-machine` | React >= 18 | everything (core + 5 machines) |
-| `agent-approval-machine/core` | React >= 16.8 | just `useApproval`, zero deps |
-| `agent-approval-machine/machines` | React >= 16.8 | the 5 configured machines |
+| `agent-approval-machine/machines` | React >= 18 | the 5 configured machines |
 | `agent-approval-machine/adapters` | React >= 18 + Tailwind | how items look |
 | `agent-approval-machine/ui` | React >= 18 + Tailwind | `ApprovalDialog`, `ApprovalCard`, `ApprovalTable` |
 
-Core has no runtime dependencies. The UI layer adds Radix Dialog/Checkbox, `clsx` and `tailwind-merge`.
+Nothing here has runtime dependencies except the UI layer (Radix Dialog/Checkbox, `clsx`, `tailwind-merge`). React is an *optional* peer dependency: you only need it for the React entries.
 
 ---
 
@@ -94,6 +95,71 @@ await machine.retryFailed();
 machine.addItems(newItems);
 machine.clearQueue();
 ```
+
+---
+
+## Any framework (Vue, Svelte, Solid, vanilla)
+
+`agent-approval-machine/store` is the same state machine with **no framework in it** — that file imports nothing at all. The React hook above is one binding on top of it, and it is ~40 lines. Write the same thing for yours:
+
+```ts
+import { createApprovalStore } from "agent-approval-machine/store";
+
+const store = createApprovalStore<Email>({
+  items: drafted,
+  canUndo: true,
+  undoMs: 5000,
+  onExecute: sendEmails,
+});
+
+const unsubscribe = store.subscribe(() => render(store.getSnapshot()));
+
+store.getSnapshot().queuedCount; // items that arrived while executing
+store.edit(id, { subject: "Rewritten" });
+await store.approve();
+store.undo(id);
+
+unsubscribe();
+store.destroy(); // cancels any pending undo timer
+```
+
+Vue, in full:
+
+```vue
+<script setup>
+import { onScopeDispose, shallowRef, watch } from "vue";
+import { createApprovalStore } from "agent-approval-machine/store";
+
+const props = defineProps({ items: Array });
+
+const store = createApprovalStore({ items: props.items, onExecute: send });
+const snapshot = shallowRef(store.getSnapshot());
+const unsubscribe = store.subscribe(() => {
+  snapshot.value = store.getSnapshot();
+});
+
+watch(() => props.items, store.syncItems);
+onScopeDispose(() => {
+  unsubscribe();
+  store.destroy();
+});
+</script>
+
+<template>
+  <button @click="store.approve()">
+    Approve {{ snapshot.summary.needsApproval }}
+  </button>
+</template>
+```
+
+Svelte, Solid, Angular, a web worker and a CLI need the same five lines.
+
+Two details make this a drop-in for any framework:
+
+- **`store.getSnapshot()` is referentially stable.** It returns the *same object* until state actually changes, so `useSyncExternalStore`, Vue's `shallowRef`, Svelte stores and Solid signals all behave — no tearing, no render loops.
+- **`setConfig` never touches state.** Pass flags and callbacks through it (it is safe during a render pass); pass the item list through `syncItems(items)`. The store compares items **by value**, so an inline `items={rows.map(toEmail)}` that is rebuilt every render does not cause a loop.
+
+`tests/framework.test.ts` runs this store inside a real Vue SSR render pass with React nowhere in the graph. If the claim ever stops being true, CI fails.
 
 ---
 
@@ -191,7 +257,7 @@ Deliberately out of scope for v1: workflow engines, multi-step approvals, role h
 
 ```bash
 pnpm install
-pnpm test          # 25 tests: partial failure, edit-then-approve, undo timer, queue
+pnpm test          # 51 tests: store, framework, partial failure, edit-then-approve, undo timer, queue
 pnpm typecheck
 pnpm build         # tsup -> ESM + CJS + d.ts, then re-applies "use client"
 pnpm registry      # regenerate registry/*.json and apps/demo/public/r/*.json
@@ -202,11 +268,13 @@ Layout:
 
 ```
 src/
-  core/useApproval.ts      the state machine: reducer + hook, no deps
+  core/store.ts            the state machine: types + reducer + store, imports nothing
+  core/useApproval.ts      the React binding (useSyncExternalStore, ~40 lines)
+  store/index.ts           the framework-free package entry
   machines/                5 configs over the core
   adapters/                5 shapes for adapters to render
   ui/                      dialog, card, table, timeline, primitives
-tests/                     core, machines, UI (vitest + @testing-library)
+tests/                     store (no React), framework (real Vue), core, machines, UI
 apps/demo/                 Next 15 + Tailwind 4, 5 tabs + docs tab
 registry/                  shadcn registry items (generated)
 ```

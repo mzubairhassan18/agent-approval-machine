@@ -7,11 +7,12 @@ Everything that is text is below. The only thing missing is screen recordings, w
 ```bash
 # library
 pnpm install
-pnpm test && pnpm typecheck && pnpm build
+pnpm test && pnpm typecheck && pnpm build   # 51 tests, incl. the store run with React absent
 pnpm registry                     # refresh registry + demo public/r
 
-# npm (name must be free: npm view agent-approval-machine)
-npm publish --access public
+# npm (name verified free on 2026-10-19)
+npm login                         # once, interactive
+npm publish --access public       # prepublishOnly reruns test + typecheck + build
 
 # demo
 cd apps/demo && npx vercel --prod   # Root Directory: apps/demo
@@ -59,7 +60,7 @@ Add them to `docs/media/` and link them at the top of the README.
 >
 > I built 5 headless machines — send, action, schedule, payment, publish. Same core, swappable adapters. Not a UI kit.
 >
-> React 19 + Next 15 + Tailwind 4. npm + live demos ↓
+> React 19 + Next 15 + Tailwind 4. The core is framework-free, so it runs in Vue / Svelte / vanilla too. npm + live demos ↓
 
 Reply thread:
 
@@ -68,6 +69,8 @@ Reply thread:
 > That is now `machine.summary` + `machine.queuedCount`.
 
 > Money gets `undoMs: 30000` and no edit field. Meetings get a `picking_time` step so approve stays blocked until a human picks a slot. Same core, different config.
+
+> Not React-locked either. The machine itself is `agent-approval-machine/store` — it imports nothing at all. React is one 40-line binding on top. The test suite runs the same store inside a Vue component with React deleted from `node_modules`.
 
 Tag 3-4 builders, not companies. Do not name competitors.
 
@@ -95,7 +98,7 @@ Tag 3-4 builders, not companies. Do not name competitors.
 >
 > Five machines are the same core with different config: send (undo 5s, editable), action (no undo, no edit — you cannot un-refund), schedule (adds a picking_time step so approve is blocked until a slot is chosen), payment (undo 30s, not editable), publish (editable, partial failure on one platform).
 >
-> The UI is optional and thin: `ApprovalDialog` / `ApprovalCard` / `ApprovalTable` render an adapter's `render(item, onEdit)` and nothing else. Core has zero dependencies; React >= 16.8.
+> The UI is optional and thin: `ApprovalDialog` / `ApprovalCard` / `ApprovalTable` render an adapter's `render(item, onEdit)` and nothing else. The core has zero dependencies and no framework in it: `agent-approval-machine/store` is a plain state machine you can drive from Vue, Svelte, Solid or vanilla JS, and `useApproval` (React >= 18) is the ~40-line binding on top of it.
 >
 > Demo (mock tools, no backend): https://approval-machines.vercel.app — Code: <repo> — npm: `agent-approval-machine`.
 >

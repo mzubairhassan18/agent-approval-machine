@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* The library's UI layer lives outside this app, so Tailwind has to be told
+   where its class names come from. */
+@source "../../../src";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light dark;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+::selection {
+  background-color: rgb(37 99 235 / 0.25);
+}

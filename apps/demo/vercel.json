@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "cd ../.. && pnpm install && pnpm build && pnpm --filter demo build",
+  "installCommand": "cd ../.. && pnpm install"
+}

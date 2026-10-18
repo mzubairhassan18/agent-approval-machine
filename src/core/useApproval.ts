@@ -358,16 +358,16 @@ function reducer<T extends { id: string }>(state: State<T>, action: Action<T>): 
 
     case "add": {
       const known = new Set(state.records.map((r) => r.item.id));
-      const dismissed = new Set(state.dismissed);
       const additions = action.items
         .filter((i) => !known.has(i.id))
         .map((item) => toRecord(item, action.queued ? "queued" : "needs_approval"));
       if (!additions.length) return state;
+      const readded = new Set(additions.map((r) => r.item.id));
       return {
         ...state,
         records: [...state.records, ...additions],
-        // A re-added item is no longer considered dismissed.
-        dismissed: state.dismissed.filter((id) => !dismissed.has(id) || !additions.some((r) => r.item.id === id)),
+        // An explicitly re-added item is no longer considered dismissed.
+        dismissed: state.dismissed.filter((id) => !readded.has(id)),
       };
     }
 

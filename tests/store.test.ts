@@ -8,8 +8,8 @@ import { resolve } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createApprovalStore } from "../src/core/store";
-import type { ApprovalResult, ApprovalStore } from "../src/core/store";
+import { createApprovalStore } from "../src/store";
+import type { ApprovalResult, ApprovalStore } from "../src/store";
 
 interface Row {
   id: string;
@@ -31,8 +31,17 @@ afterEach(() => {
 
 describe("framework independence", () => {
   it("imports nothing at all", () => {
-    const source = readFileSync(resolve(process.cwd(), "src/core/store.ts"), "utf8");
+    const source = readFileSync(resolve(process.cwd(), "src/store.ts"), "utf8");
     expect(source).not.toMatch(/^\s*import\s/m);
+  });
+
+  it("declares no dependencies and no framework peer", () => {
+    const pkg = JSON.parse(readFileSync(resolve(process.cwd(), "package.json"), "utf8")) as {
+      dependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+    };
+    expect(pkg.dependencies ?? {}).toEqual({});
+    expect(Object.keys(pkg.peerDependencies ?? {})).toEqual([]);
   });
 
   it("is a plain object with no framework semantics", () => {

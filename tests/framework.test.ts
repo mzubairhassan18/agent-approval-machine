@@ -1,18 +1,18 @@
 /**
  * The core is not React-shaped.
  *
- * This suite imports `agent-approval-machine/store` - the framework-free entry -
- * and drives it from a real Vue component inside Vue's own render pass. No React
- * is imported, installed or involved. If this file passes, "usable from any
- * JavaScript framework" is a fact rather than a claim.
+ * This suite imports the published package itself - there is no framework
+ * binding to import - and drives it from a real Vue component inside Vue's own
+ * render pass. No React is imported, installed or involved. If this file
+ * passes, "usable from any JavaScript framework" is a fact rather than a claim.
  */
 import { computed, createSSRApp, h, onScopeDispose, shallowRef } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it, vi } from "vitest";
 import type { ComputedRef } from "vue";
 
-import { createApprovalStore } from "../src/store/index";
-import type { ApprovalResult, ApprovalStore, UseApprovalConfig } from "../src/store/index";
+import { createApprovalStore } from "../src/store";
+import type { ApprovalResult, ApprovalStore, UseApprovalConfig } from "../src/store";
 
 interface Row {
   id: string;
@@ -41,10 +41,11 @@ function useApprovalVue<T extends { id: string }>(config: UseApprovalConfig<T>) 
 }
 
 describe("framework independence", () => {
-  it("exports no hook from the framework-free entry", async () => {
-    const module = await import("../src/store/index");
+  it("exports no framework binding at all", async () => {
+    const module = await import("../src");
     expect(Object.keys(module)).not.toContain("useApproval");
     expect(Object.keys(module)).toContain("createApprovalStore");
+    expect(Object.keys(module)).toContain("paymentApproval");
   });
 
   it("renders inside a real Vue component", async () => {

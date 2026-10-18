@@ -1,10 +1,10 @@
 /**
- * createApprovalStore - the headless core, with no framework in it.
+ * createApprovalStore - headless approval state machines.
  *
  * Zero dependencies, zero CSS, zero UI, zero framework imports. This file is
- * plain TypeScript: it runs in Vue, Svelte, Solid, Angular, Alpine or a bare
- * <script> tag just as well as in React. `useApproval` (./useApproval) is a
- * thin binding on top of it, and so is any binding you write.
+ * plain TypeScript: it runs in React, Vue, Svelte, Solid, Angular, a web worker
+ * or a bare <script> tag. No binding ships in this package — the glue is 5-15
+ * lines per framework, shown in the README.
  *
  * The 5 repetitive conditions every agent rebuilds:
  *   1. select all / select one

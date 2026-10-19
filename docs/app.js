@@ -8,7 +8,12 @@
  */
 
 const PKG_VERSION = "0.1.0";
-const PKG_URL = `https://esm.sh/agent-approval-machine@${PKG_VERSION}`;
+/**
+ * The demo imports the published package straight from esm.sh, so the page
+ * always tracks npm and needs no build step. Set `window.AAM_PKG_URL` before
+ * this module loads to pin a different version or self-host the bundle.
+ */
+const PKG_URL = globalThis.AAM_PKG_URL ?? `https://esm.sh/agent-approval-machine@${PKG_VERSION}`;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -240,6 +245,8 @@ class ApprovalSection {
     this.index = index;
     this.rows = new Map();
     this.arrived = false;
+    /** Items that have already failed once, so a retry can actually succeed. */
+    this.failedOnce = new Set();
 
     const el = document.createElement("section");
     el.className = "uc";
@@ -310,8 +317,14 @@ class ApprovalSection {
     const failed = [];
     for (const item of batch) {
       const error = this.uc.fail?.[item.id];
-      if (error) failed.push({ item, error });
-      else succeeded.push(item);
+      // Providers recover: an item fails its first attempt, then goes through —
+      // which is what the failure messages ("retry in a few seconds") promise.
+      if (error && !this.failedOnce.has(item.id)) {
+        this.failedOnce.add(item.id);
+        failed.push({ item, error });
+      } else {
+        succeeded.push(item);
+      }
     }
     return { succeeded, failed };
   }
@@ -327,6 +340,7 @@ class ApprovalSection {
       if (act === "clear") this.store.clearQueue();
       if (act === "reset") {
         this.arrived = false;
+        this.failedOnce.clear();
         this.rows.forEach((row) => row.el.remove());
         this.rows.clear();
         this.store.reset(this.uc.items.map((item) => ({ ...item })));
@@ -344,7 +358,11 @@ class ApprovalSection {
         <div class="row-sub"></div>
         ${
           this.uc.edit
-            ? `<${this.uc.edit.kind === "textarea" ? "textarea" : "input"} class="row-edit" rows="3" aria-label="${this.uc.edit.label}" />`
+            ? this.uc.edit.kind === "textarea"
+              ? // <textarea> is not a void element: it must be closed explicitly,
+                // or the rest of the row ends up inside it as text content.
+                `<textarea class="row-edit" rows="3" aria-label="${this.uc.edit.label}"></textarea>`
+              : `<input class="row-edit" aria-label="${this.uc.edit.label}" />`
             : ""
         }
         <div class="edit-hint" hidden>edited — this is the value <code>onExecute</code> receives</div>
@@ -487,8 +505,9 @@ async function main() {
   }
 
   boot.className = "boot ok";
+  const source = PKG_URL.startsWith("https://esm.sh") ? "from esm.sh" : "from a pinned bundle";
   boot.innerHTML =
-    `Loaded <code>agent-approval-machine@${PKG_VERSION}</code> from esm.sh — the store below is the ` +
+    `Loaded <code>agent-approval-machine@${PKG_VERSION}</code> ${source} — the store below is the ` +
     `published package, driven by ~60 lines of DOM code and nothing else.`;
 
   const host = document.getElementById("usecases");

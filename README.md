@@ -248,6 +248,7 @@ src/store.ts       the state machine: types + pure reducer + createApprovalStore
 src/presets.ts     the 5 machines as plain data
 tests/             store (no framework), presets, framework (real Vue SSR)
 docs/              the GitHub Pages demo site
+notes/PROJECTS.md  the four repos: file map, UI-change recipes, deploy reference
 ```
 
 The test suite runs in plain Node — no jsdom, no DOM, no renderer — and one guard test asserts the package declares **no dependencies and no framework peer**. If someone ever adds React back to this package, CI fails.

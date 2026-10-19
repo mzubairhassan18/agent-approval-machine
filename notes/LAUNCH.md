@@ -33,6 +33,17 @@ npm view agent-approval-machine version            # 0.1.0
 **Order matters:** the Pages site and all three demos install from the registry, so nothing else
 can be verified until this succeeds.
 
+Before publishing, the Pages demo can be driven end to end offline against a packed build — it
+takes a minute and it has already caught one bug that would have shipped:
+
+```powershell
+cd D:\image-agent\tmp\opencode\verify-vanilla   # any scratch dir with jsdom installed
+Copy-Item D:\framework\agent-approval-machine\notes\verify-pages-demo.mjs .
+$env:AAM_REPO = "D:\framework\agent-approval-machine"
+$env:AAM_DIST = "$PWD\extracted\package\dist\index.js"
+node verify-pages-demo.mjs                      # expects 28/28
+```
+
 ## 2. GitHub Pages (once)
 
 ```powershell

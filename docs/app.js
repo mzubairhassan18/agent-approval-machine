@@ -9,11 +9,22 @@
 
 const PKG_VERSION = "0.1.0";
 /**
- * The demo imports the published package straight from esm.sh, so the page
- * always tracks npm and needs no build step. Set `window.AAM_PKG_URL` before
- * this module loads to pin a different version or self-host the bundle.
+ * The demo imports the published package from a CDN, so the page always tracks
+ * npm and needs no build step. The package's own `dist/index.js` is a single
+ * self-contained ESM file, so serving that file directly is both the shortest
+ * path and the exact bytes npm publishes — no re-bundling step in between.
+ *
+ * Several CDNs are tried in order because a build-on-first-request CDN
+ * (esm.sh) can fail a page load while it warms up. Set `window.AAM_PKG_URL`
+ * before this module loads to pin a version or self-host the bundle instead.
  */
-const PKG_URL = globalThis.AAM_PKG_URL ?? `https://esm.sh/agent-approval-machine@${PKG_VERSION}`;
+const PKG_SOURCES = globalThis.AAM_PKG_URL
+  ? [globalThis.AAM_PKG_URL]
+  : [
+      `https://cdn.jsdelivr.net/npm/agent-approval-machine@${PKG_VERSION}/dist/index.js`,
+      `https://unpkg.com/agent-approval-machine@${PKG_VERSION}/dist/index.js`,
+      `https://esm.sh/agent-approval-machine@${PKG_VERSION}`,
+    ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -494,20 +505,31 @@ class ApprovalSection {
 async function main() {
   const boot = document.getElementById("boot");
 
+  // Try each CDN in turn: the first one that answers wins, and the banner
+  // names it so it is obvious where the page got the package from.
   let mod;
-  try {
-    mod = await import(/* @vite-ignore */ PKG_URL);
-  } catch (error) {
+  let loadedFrom;
+  const failures = [];
+  for (const url of PKG_SOURCES) {
+    try {
+      mod = await import(/* @vite-ignore */ url);
+      loadedFrom = url;
+      break;
+    } catch (error) {
+      failures.push(`${url} (${error.message})`);
+    }
+  }
+
+  if (!mod) {
     boot.className = "boot err";
-    boot.textContent =
-      `Could not load ${PKG_URL} (${error.message}). Check the network, then reload.`;
+    boot.textContent = `Could not load the package from any CDN — ${failures.join("; ")}. Check the network, then reload.`;
     return;
   }
 
   boot.className = "boot ok";
-  const source = PKG_URL.startsWith("https://esm.sh") ? "from esm.sh" : "from a pinned bundle";
+  const source = loadedFrom.startsWith("http") ? new URL(loadedFrom).host : "a pinned bundle";
   boot.innerHTML =
-    `Loaded <code>agent-approval-machine@${PKG_VERSION}</code> ${source} — the store below is the ` +
+    `Loaded <code>agent-approval-machine@${PKG_VERSION}</code> from ${source} — the store below is the ` +
     `published package, driven by ~60 lines of DOM code and nothing else.`;
 
   const host = document.getElementById("usecases");

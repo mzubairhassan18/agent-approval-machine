@@ -5,7 +5,7 @@
 | Artifact | Where | Notes |
 | --- | --- | --- |
 | `agent-approval-machine` | npm | One package. Zero dependencies, no React, 33.8 kB tarball, 2.45 kB gzipped in a bundle. |
-| The site | `docs/` on `main`, GitHub Pages | Ten use cases running on the published package, straight from esm.sh. |
+| The site | `docs/` on `main`, GitHub Pages | Ten use cases running on the published package, imported from a CDN at runtime. |
 | Next.js demo | separate repo + its own Pages site | shadcn/ui. The copy-paste React reference, including the moved `ApprovalDialog`. |
 | Vue demo | separate repo + its own Pages site | Vuetify 3. |
 | Angular demo | separate repo + its own Pages site | Angular Material. |
@@ -123,7 +123,7 @@ Discords (Vercel AI SDK, AI Engineer): lead with the ten flows link and one conc
 ## 5. Before posting
 
 - `npm view agent-approval-machine version` returns 0.1.0.
-- The Pages URL loads and all ten sections render (the boot banner says `Loaded ... from esm.sh`).
+- The Pages URL loads and all ten sections render (the boot banner says `Loaded agent-approval-machine@0.1.0 from <cdn>`).
 - The three Pages URLs load, and each shows `Retry 1 failed` after one Approve all click.
 - The store-only bundle is still under ~3 kB gzipped:
   `esbuild` an entry that imports `createApprovalStore` and check.

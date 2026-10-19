@@ -16,7 +16,7 @@ Every AI agent rebuilds these 5 conditions:
 This package is that logic, five times over, on one core.
 ```
 
-**Live demos:** [10 real-world use cases, no install](https://mzubairhassan18.github.io/agent-approval-machine/) — plus full apps in [Next.js](https://github.com/mzubairhassan18/agent-approval-machine-demo-nextjs) (shadcn/ui), [Vue](https://github.com/mzubairhassan18/agent-approval-machine-demo-vue) (Vuetify) and [Angular](https://github.com/mzubairhassan18/agent-approval-machine-demo-angular) (Angular Material).
+**Live demos:** [10 real-world use cases, no install](https://mzubairhassan18.github.io/agent-approval-machine/) — plus the same ten flows as full apps: [Next.js + shadcn/ui](https://mzubairhassan18.github.io/agent-approval-machine-demo-nextjs/), [Vue + Vuetify](https://mzubairhassan18.github.io/agent-approval-machine-demo-vue/) and [Angular Material](https://mzubairhassan18.github.io/agent-approval-machine-demo-angular/) (source: [Next](https://github.com/mzubairhassan18/agent-approval-machine-demo-nextjs) · [Vue](https://github.com/mzubairhassan18/agent-approval-machine-demo-vue) · [Angular](https://github.com/mzubairhassan18/agent-approval-machine-demo-angular)).
 
 ---
 

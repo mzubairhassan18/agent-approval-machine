@@ -6,9 +6,9 @@
 | --- | --- | --- |
 | `agent-approval-machine` | npm | One package. Zero dependencies, no React, 33.8 kB tarball, 2.45 kB gzipped in a bundle. |
 | The site | `docs/` on `main`, GitHub Pages | Ten use cases running on the published package, straight from esm.sh. |
-| Next.js demo | separate repo + Vercel | shadcn/ui. The copy-paste React reference, including the moved `ApprovalDialog`. |
-| Vue demo | separate repo + Vercel | Vuetify 3. |
-| Angular demo | separate repo + Vercel | Angular Material. |
+| Next.js demo | separate repo + its own Pages site | shadcn/ui. The copy-paste React reference, including the moved `ApprovalDialog`. |
+| Vue demo | separate repo + its own Pages site | Vuetify 3. |
+| Angular demo | separate repo + its own Pages site | Angular Material. |
 
 There is exactly one published package. Framework glue is 5-15 lines per framework and lives in
 the demo repos, not on npm.
@@ -55,9 +55,29 @@ Site: https://mzubairhassan18.github.io/agent-approval-machine/
 
 ## 3. The three demo repos
 
-Each is an independent repository that only consumes the npm package. Deploy with
-`npx vercel --prod` from the repo root, then put the resulting URLs in `docs/index.html` (top nav)
-and in the README demo table.
+Each is an independent repository that only consumes the npm package, and each serves its own
+GitHub Pages site — no CI, no external host. A push is the deploy:
+
+```powershell
+cd D:\framework\agent-approval-machine-demo-nextjs   # ..-vue, ..-angular
+npm run build:pages                                   # build -> docs/ (with .nojekyll)
+git add docs && git commit -m "chore: rebuild pages" && git push
+```
+
+Pages serves `main:/docs`, enabled once per repo with:
+
+```powershell
+gh api -X POST repos/mzubairhassan18/<repo>/pages -f "source[branch]=main" -f "source[path]=/docs"
+```
+
+| Demo | Live | Source |
+| --- | --- | --- |
+| Next.js + shadcn/ui | https://mzubairhassan18.github.io/agent-approval-machine-demo-nextjs/ | [repo](https://github.com/mzubairhassan18/agent-approval-machine-demo-nextjs) |
+| Vue + Vuetify | https://mzubairhassan18.github.io/agent-approval-machine-demo-vue/ | [repo](https://github.com/mzubairhassan18/agent-approval-machine-demo-vue) |
+| Angular Material | https://mzubairhassan18.github.io/agent-approval-machine-demo-angular/ | [repo](https://github.com/mzubairhassan18/agent-approval-machine-demo-angular) |
+
+Cutting a new build after changing a demo: `npm run build:pages`, commit `docs/`, push. The library
+is bundled into the build at that moment, so the live sites keep working even if npm is down.
 
 ## 4. Launch copy
 
@@ -77,7 +97,7 @@ X / Bluesky thread:
 5. Undo window with a timer (5s for messages, 30s for money), then it commits.
 6. New items arriving mid-flight are held as `queued`, not lost.
 7. Ten real-world flows, live, no install: <pages url>
-8. Next.js (shadcn), Vue (Vuetify) and Angular (Material) versions, each ~60 lines of glue: <links>
+8. Next.js (shadcn), Vue (Vuetify) and Angular (Material) versions of the same ten flows, each ~60 lines of glue: https://mzubairhassan18.github.io/agent-approval-machine-demo-nextjs/
 
 Show HN:
 
@@ -104,6 +124,6 @@ Discords (Vercel AI SDK, AI Engineer): lead with the ten flows link and one conc
 
 - `npm view agent-approval-machine version` returns 0.1.0.
 - The Pages URL loads and all ten sections render (the boot banner says `Loaded ... from esm.sh`).
-- The three Vercel URLs are in the top nav and the README table.
+- The three Pages URLs load, and each shows `Retry 1 failed` after one Approve all click.
 - The store-only bundle is still under ~3 kB gzipped:
   `esbuild` an entry that imports `createApprovalStore` and check.
